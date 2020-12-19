@@ -1,19 +1,35 @@
-import pets from '../db/pets.js';
+import Model from '../models/index.js';
+
+const addPet = (req, res) => {
+  const newPet = new Model.PetModel({ ...req.body });
+  newPet.save((err, savedPet) => {
+    if (err) {
+      res.status(500);
+      return res.send(err);
+    }
+    return res.json(savedPet);
+  });
+};
 
 const getPets = (req, res) => {
-  res.json(pets);
+  Model.PetModel.find((err, allPets) => {
+    if (err) {
+      res.status(500);
+      return res.send(err);
+    }
+    return res.json(allPets);
+  });
 };
 
 const getPet = (req, res) => {
   const { id } = req.params;
-  console.log(id);
-  const petById = pets.find((pet) => String(pet.id) === String(id));
-  if (petById) {
-    res.json(petById);
-  } else {
-    res.status(404);
-    res.send('pet not found ⚠');
-  }
+  Model.PetModel.findById(id, (err, petById) => {
+    if (err) {
+      res.status(404);
+      return res.send(err);
+    }
+    return res.json(petById);
+  });
 };
 
-export default { getPet, getPets };
+export default { getPet, getPets, addPet };

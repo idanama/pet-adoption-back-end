@@ -7,7 +7,7 @@ const apiWip = (req, res) => {
 const api = {
   signup: apiWip,
   login: apiWip,
-  addPet: apiWip,
+  addPet: pet.addPet,
   getPet: pet.getPet,
   editPet: apiWip,
   getPets: pet.getPets,
