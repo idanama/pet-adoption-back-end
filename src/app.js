@@ -34,7 +34,7 @@ if (process.env.NODE_ENV === 'development') {
 
 app.get('/', (req, res) => res.send('welcome to the pet-adoption-back-end'));
 
-app.get('/signup', api.signup);
+app.post('/signup', api.signup);
 app.post('/login', api.login);
 
 app.post('/pet', api.addPet);
