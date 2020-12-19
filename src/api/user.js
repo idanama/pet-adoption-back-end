@@ -10,7 +10,7 @@ const signup = async (req, res) => {
     return res.send('submitted data validation failed');
   }
 
-  bcrypt.hash(req.body.password, Number(process.env.SALT_ROUNDS), (err, hash) => {
+  return bcrypt.hash(req.body.password, Number(process.env.SALT_ROUNDS), (err, hash) => {
     if (err) {
       res.status(500);
       return res.send(err);
@@ -38,4 +38,55 @@ const login = async (req, res) => {
   });
 };
 
-export default { signup, login };
+const savePet = async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  if (!userId) {
+    res.status(401);
+    return res.send('no identification');
+  }
+  const options = { new: true, omitUndefined: true };
+  try {
+    const { savedPets } = await Model.UserModel
+      .findByIdAndUpdate(userId, { $addToSet: { savedPets: [id] } }, options);
+    return res.send({ savedPets });
+  } catch (e) {
+    res.status(400);
+    return res.send(e);
+  }
+};
+
+const deleteSavedPet = async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  if (!userId) {
+    res.status(401);
+    return res.send('no identification');
+  }
+  const options = { new: true, omitUndefined: true };
+  try {
+    const { savedPets } = await Model.UserModel
+      .findByIdAndUpdate(userId, { $pull: { savedPets: id } }, options);
+    return res.send({ savedPets });
+  } catch (e) {
+    res.status(400);
+    return res.send(e);
+  }
+};
+
+const getUserPets = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const savedPetsIds = (await Model.UserModel.findById(id)).savedPets;
+    const savedPets = await Model.PetModel.find({ _id: { $in: savedPetsIds } });
+    const ownedPets = await Model.PetModel.find({ owner: id });
+    return res.json({ savedPets, ownedPets });
+  } catch (e) {
+    res.status(400);
+    return res.send(e);
+  }
+};
+
+export default {
+  signup, login, savePet, deleteSavedPet, getUserPets,
+};
