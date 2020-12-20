@@ -5,37 +5,31 @@ const signup = async (req, res) => {
   try {
     const userValidation = new Model.UserModel({ ...req.body });
     await userValidation.validate();
-  } catch (e) {
+  } catch (err) {
     res.status(400);
     return res.send('submitted data validation failed');
   }
 
-  return bcrypt.hash(req.body.password, Number(process.env.SALT_ROUNDS), (err, hash) => {
-    if (err) {
-      res.status(500);
-      return res.send(err);
-    }
+  try {
+    const hash = await bcrypt.hash(req.body.password, Number(process.env.SALT_ROUNDS));
     const newUser = new Model.UserModel({ ...req.body, password: hash });
-    return newUser.save((e, savedUser) => {
-      if (e) {
-        res.status(500);
-        return res.send(e);
-      }
-      const { _id } = savedUser;
-      return res.json(_id);
-    });
-  });
+    const { _id } = await newUser.save();
+    return res.send(_id);
+  } catch (err) {
+    res.status(500);
+    return res.send(err);
+  }
 };
 
 const login = async (req, res) => {
   try {
-    const { _id, password } = await Model.UserModel.findOne({ email: req.body.email }, 'id password');
+    const { _id, password } = await Model.UserModel
+      .findOne({ email: req.body.email }, 'id password');
     const isUser = await bcrypt.compare(req.body.password, password);
     if (isUser) {
       return res.send(_id);
     }
-    res.status(401);
-    return res.send('wrong credentials');
+    throw new Error();
   } catch (e) {
     res.status(401);
     return res.send('wrong credentials');
@@ -47,10 +41,10 @@ const savePet = async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
     res.status(401);
-    return res.send('no identification');
+    return res.send('unauthorized to make this request');
   }
-  const options = { new: true, omitUndefined: true };
   try {
+    const options = { new: true, omitUndefined: true };
     const { savedPets } = await Model.UserModel
       .findByIdAndUpdate(userId, { $addToSet: { savedPets: [id] } }, options);
     return res.send({ savedPets });
@@ -65,7 +59,7 @@ const deleteSavedPet = async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
     res.status(401);
-    return res.send('no identification');
+    return res.send('unauthorized to make this request');
   }
   const options = { new: true, omitUndefined: true };
   try {
@@ -81,9 +75,13 @@ const deleteSavedPet = async (req, res) => {
 const getUserPets = async (req, res) => {
   const { id } = req.params;
   try {
-    const savedPetsIds = (await Model.UserModel.findById(id)).savedPets;
-    const savedPets = await Model.PetModel.find({ _id: { $in: savedPetsIds } });
-    const ownedPets = await Model.PetModel.find({ owner: id });
+    const savedPetsIds = (await Model.UserModel
+      .findById(id)).savedPets;
+    const allPets = await Model.PetModel
+      .find({ $or: [{ _id: { $in: savedPetsIds } }, { owner: id }] });
+    const savedPets = allPets.filter((pet) => savedPetsIds.includes(pet.id));
+    const ownedPets = allPets.filter((pet) => String(pet.owner) === String(id));
+
     return res.json({ savedPets, ownedPets });
   } catch (e) {
     res.status(400);

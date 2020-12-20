@@ -1,41 +1,41 @@
 import Model from '../models/index.js';
 
-const addPet = (req, res) => {
+const addPet = async (req, res) => {
   const newPet = new Model.PetModel({ ...req.body });
-  newPet.save((err, savedPet) => {
-    if (err) {
-      res.status(500);
-      return res.send(err);
-    }
+  try {
+    const savedPet = await newPet.save;
     return res.json(savedPet);
-  });
+  } catch (err) {
+    res.status(500);
+    return res.send(err);
+  }
 };
 
-const getPets = (req, res) => {
-  Model.PetModel.find((err, allPets) => {
-    if (err) {
-      res.status(500);
-      return res.send(err);
-    }
+const getPets = async (req, res) => {
+  try {
+    const allPets = await Model.PetModel.find();
     return res.json(allPets);
-  });
+  } catch (err) {
+    res.status(500);
+    return res.send(err);
+  }
 };
 
-const getPet = (req, res) => {
+const getPet = async (req, res) => {
   const { id } = req.params;
-  Model.PetModel.findById(id, (err, petById) => {
-    if (err) {
-      res.status(404);
-      return res.send(err);
-    }
+  try {
+    const petById = await Model.PetModel.findById(id);
     return res.json(petById);
-  });
+  } catch (err) {
+    res.status(404);
+    return res.send(err);
+  }
 };
 
 const editPet = async (req, res) => {
   const { id } = req.params;
-  const options = { new: true, omitUndefined: true };
   try {
+    const options = { new: true, omitUndefined: true };
     const updatedPet = await Model.PetModel.findByIdAndUpdate(id, req.body.updatedFields, options);
     return res.send(updatedPet);
   } catch (e) {
