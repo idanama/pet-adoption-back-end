@@ -1,11 +1,6 @@
 import pet from './pet.js';
 import user from './user.js';
 
-const apiWip = (req, res) => {
-  res.status(501);
-  res.send('api endpoint under construction 🚧');
-};
-
 const api = {
   signup: user.signup,
   login: user.login,
