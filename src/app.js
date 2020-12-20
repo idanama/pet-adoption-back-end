@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 import api from './api/index.js';
 
@@ -24,6 +25,13 @@ db.once('open', () => {
 const app = express();
 
 app.use(express.json());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://spca.vercel.app',
+  ],
+  credentials: true,
+}));
 
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
