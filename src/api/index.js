@@ -20,10 +20,10 @@ const api = {
   savePet: user.savePet,
   deleteSavedPet: user.deleteSavedPet,
   getUserPets: user.getUserPets,
-  getUser: apiWip,
-  getUserFull: apiWip,
-  updateUser: apiWip,
-  getUsers: apiWip,
+  getUser: user.getUser,
+  getUserFull: user.getUserFull,
+  updateUser: user.updateUser,
+  getUsers: user.getUsers,
 };
 
 export default api;
