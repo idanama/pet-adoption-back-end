@@ -1,9 +1,16 @@
 import bcrypt from 'bcryptjs';
+import validator from 'validator';
 import Model from '../models/index.js';
 
 const signup = async (req, res) => {
+  const sanitizedUser = {
+    ...req.body,
+    email: validator.normalizeEmail(req.body.email),
+    bio: validator.escape(req.body.bio),
+  };
+
   try {
-    const userValidation = new Model.UserModel({ ...req.body });
+    const userValidation = new Model.UserModel(sanitizedUser);
     await userValidation.validate();
   } catch (err) {
     res.status(400);
@@ -12,7 +19,7 @@ const signup = async (req, res) => {
 
   try {
     const hash = await bcrypt.hash(req.body.password, Number(process.env.SALT_ROUNDS));
-    const newUser = new Model.UserModel({ ...req.body, password: hash });
+    const newUser = new Model.UserModel({ ...sanitizedUser, password: hash });
     const { _id } = await newUser.save();
     return res.send(_id);
   } catch (err) {

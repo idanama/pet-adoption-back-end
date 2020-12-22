@@ -41,12 +41,6 @@ const User = new mongoose.Schema({
     type: String,
     required: true,
     select: false,
-    validate: {
-      validator(v) {
-        return validator.isLength(v, { min: 6, max: 32 }) && validator.isNumeric(v);
-      },
-      message: 'Invalid Password',
-    },
   },
   bio: {
     type: String,
