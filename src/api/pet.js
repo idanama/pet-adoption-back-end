@@ -1,6 +1,16 @@
 import Model from '../models/index.js';
 
+const updateOptions = { new: true, omitUndefined: true, runValidators: true };
+
 const addPet = async (req, res) => {
+  try {
+    const petValidation = new Model.PetModel({ ...req.body });
+    await petValidation.validate();
+  } catch (err) {
+    res.status(400);
+    return res.send(err.message);
+  }
+
   const newPet = new Model.PetModel({ ...req.body });
   try {
     const savedPet = await newPet.save;
@@ -35,8 +45,8 @@ const getPet = async (req, res) => {
 const editPet = async (req, res) => {
   const { id } = req.params;
   try {
-    const options = { new: true, omitUndefined: true };
-    const updatedPet = await Model.PetModel.findByIdAndUpdate(id, req.body.updatedFields, options);
+    const updatedPet = await Model.PetModel
+      .findByIdAndUpdate(id, req.body.updatedFields, updateOptions);
     return res.send(updatedPet);
   } catch (e) {
     res.status(400);
@@ -52,10 +62,9 @@ const adoptPet = async (req, res) => {
     return res.send('insufficient input');
   }
   const status = type === 'adopt' ? 'Adopted' : 'Fostered';
-  const options = { new: true, omitUndefined: true };
   try {
     const updatedPet = await Model.PetModel
-      .findByIdAndUpdate(id, { owner: userId, status }, options);
+      .findByIdAndUpdate(id, { owner: userId, status }, updateOptions);
     return res.send(updatedPet);
   } catch (e) {
     res.status(400);
@@ -70,10 +79,9 @@ const returnPet = async (req, res) => {
     res.status(401);
     return res.send('no identification');
   }
-  const options = { new: true, omitUndefined: true };
   try {
     const updatedPet = await Model.PetModel
-      .findByIdAndUpdate(id, { owner: null, status: 'Adoptable' }, options);
+      .findByIdAndUpdate(id, { owner: null, status: 'Adoptable' }, updateOptions);
     return res.send(updatedPet);
   } catch (e) {
     res.status(400);

@@ -7,7 +7,7 @@ const signup = async (req, res) => {
     await userValidation.validate();
   } catch (err) {
     res.status(400);
-    return res.send('submitted data validation failed');
+    return res.send(err.message);
   }
 
   try {
@@ -107,7 +107,7 @@ const getUser = async (req, res) => {
 const getUserFull = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await Model.UserModel.findById(id, '-password');
+    const user = await Model.UserModel.findById(id);
     return res.json(user);
   } catch (e) {
     res.status(400);
@@ -117,7 +117,7 @@ const getUserFull = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const { id } = req.params;
-  const options = { new: true, omitUndefined: true };
+  const options = { new: true, omitUndefined: true, runValidators: true };
   try {
     const updatedUser = await Model.UserModel
       .findByIdAndUpdate(id, req.body, options).lean();
