@@ -1,12 +1,17 @@
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import Model from '../models/index.js';
+
+dotenv.config();
 
 const signup = async (req, res) => {
   const sanitizedUser = {
     ...req.body,
     email: validator.normalizeEmail(req.body.email),
     bio: validator.escape(req.body.bio),
+    role: 'user',
   };
 
   try {
@@ -20,8 +25,10 @@ const signup = async (req, res) => {
   try {
     const hash = await bcrypt.hash(req.body.password, Number(process.env.SALT_ROUNDS));
     const newUser = new Model.UserModel({ ...sanitizedUser, password: hash });
-    const { _id } = await newUser.save();
-    return res.send(_id);
+    const { _id, role } = await newUser.save();
+    const userId = _id;
+    const token = jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    return res.send({ userId, token });
   } catch (err) {
     res.status(500);
     return res.send(err);
@@ -30,11 +37,13 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { _id, password } = await Model.UserModel
-      .findOne({ email: req.body.email }, 'id password');
+    const { _id, password, role } = await Model.UserModel
+      .findOne({ email: req.body.email }, 'id password role');
     const isUser = await bcrypt.compare(req.body.password, password);
     if (isUser) {
-      return res.send(_id);
+      const userId = _id;
+      const token = jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+      return res.send({ userId, token });
     }
     throw new Error();
   } catch (e) {
@@ -125,10 +134,10 @@ const getUserFull = async (req, res) => {
 const updateUser = async (req, res) => {
   const { id } = req.params;
   const options = { new: true, omitUndefined: true, runValidators: true };
+  const sanitizedUser = { ...req.body, role: undefined };
   try {
     const updatedUser = await Model.UserModel
-      .findByIdAndUpdate(id, req.body, options).lean();
-    delete updatedUser.password;
+      .findByIdAndUpdate(id, sanitizedUser, options).lean();
     return res.send(updatedUser);
   } catch (e) {
     res.status(400);
