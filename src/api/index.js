@@ -1,24 +1,28 @@
+import { Router } from 'express';
 import pet from './pet.js';
 import user from './user.js';
 
-const api = {
-  signup: user.signup,
-  login: user.login,
+const router = Router();
 
-  addPet: pet.addPet,
-  getPet: pet.getPet,
-  editPet: pet.editPet,
-  getPets: pet.getPets,
+router.post('/signup', user.signup);
+router.post('/login', user.login);
 
-  adoptPet: pet.adoptPet,
-  returnPet: pet.returnPet,
-  savePet: user.savePet,
-  deleteSavedPet: user.deleteSavedPet,
-  getUserPets: user.getUserPets,
-  getUser: user.getUser,
-  getUserFull: user.getUserFull,
-  updateUser: user.updateUser,
-  getUsers: user.getUsers,
-};
+router.post('/pet', pet.addPet);
+router.get('/pet/random', pet.getRandomPet);
+router.get('/pet/name/:name', pet.getPetByName);
+router.get('/pet/:id', pet.getPet);
+router.put('/pet/:id', pet.editPet);
+router.get('/pet', pet.getPets);
 
-export default api;
+router.post('/pet/:id/adopt', pet.adoptPet);
+router.post('/pet/:id/return', pet.returnPet);
+router.post('/pet/:id/save', user.savePet);
+router.delete('/pet/:id/save', user.deleteSavedPet);
+
+router.get('/pet/user/:id', user.getUserPets);
+router.get('/user/:id', user.getUser);
+router.get('/user/:id/full', user.getUserFull);
+router.put('/user/:id', user.updateUser);
+router.get('/user', user.getUsers);
+
+export default router;

@@ -1,94 +1,121 @@
+import dotenv from 'dotenv';
 import Model from '../models/index.js';
+import { validateJwt } from './jwt.js';
+
+dotenv.config();
 
 const updateOptions = { new: true, omitUndefined: true, runValidators: true };
 
 const addPet = async (req, res) => {
   try {
-    const petValidation = new Model.PetModel({ ...req.body });
+    const petValidation = new Model.Pet({ ...req.body });
     await petValidation.validate();
-  } catch (err) {
+  } catch (e) {
     res.status(400);
-    return res.send(err.message);
+    return res.send({ error: { ...e } });
   }
 
-  const newPet = new Model.PetModel({ ...req.body });
+  const newPet = new Model.Pet({ ...req.body });
   try {
     const savedPet = await newPet.save;
     return res.json(savedPet);
   } catch (err) {
     res.status(500);
-    return res.send(err);
+    return res.send({ error: { ...err } });
   }
 };
 
 const getPets = async (req, res) => {
   try {
-    const allPets = await Model.PetModel.find();
+    const allPets = await Model.Pet.find();
     return res.json(allPets);
   } catch (err) {
     res.status(500);
-    return res.send(err);
+    return res.send({ error: { ...err } });
   }
 };
 
 const getPet = async (req, res) => {
   const { id } = req.params;
   try {
-    const petById = await Model.PetModel.findById(id);
-    return res.json(petById);
+    const idArray = id.split(',');
+    let result;
+    if (idArray.length > 1) {
+      result = await Model.Pet.find({ _id: { $in: [...idArray] } });
+    } else {
+      result = await Model.Pet.findById(id);
+    }
+    return res.json(result);
   } catch (err) {
     res.status(404);
-    return res.send(err);
+    return res.send({ error: { ...err } });
   }
 };
 
 const editPet = async (req, res) => {
   const { id } = req.params;
   try {
-    const updatedPet = await Model.PetModel
+    const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, req.body.updatedFields, updateOptions);
     return res.send(updatedPet);
-  } catch (e) {
+  } catch (err) {
     res.status(400);
-    return res.send(e);
+    return res.send({ error: { ...err } });
   }
 };
 
 const adoptPet = async (req, res) => {
   const { id } = req.params;
-  const { userId, type } = req.body;
-  if (!userId || !type) {
-    res.status(400);
-    return res.send('insufficient input');
-  }
-  const status = type === 'adopt' ? 'Adopted' : 'Fostered';
+  const { userId, action } = req.body;
   try {
-    const updatedPet = await Model.PetModel
+    validateJwt(req.cookies.jwt, userId);
+    const status = action === 'adopt' ? 'Adopted' : 'Fostered';
+    const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, { owner: userId, status }, updateOptions);
     return res.send(updatedPet);
-  } catch (e) {
+  } catch (err) {
     res.status(400);
-    return res.send(e);
+    return res.send({ error: { ...err } });
   }
 };
 
 const returnPet = async (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
-  if (!userId) {
-    res.status(401);
-    return res.send('no identification');
-  }
   try {
-    const updatedPet = await Model.PetModel
+    validateJwt(req.cookies.jwt, userId);
+    const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, { owner: null, status: 'Adoptable' }, updateOptions);
     return res.send(updatedPet);
-  } catch (e) {
+  } catch (err) {
     res.status(400);
-    return res.send(e);
+    return res.send({ error: { ...err } });
+  }
+};
+
+const getRandomPet = async (req, res) => {
+  try {
+    const count = await Model.Pet.count({ status: 'Adoptable' });
+    const random = Math.floor(Math.random() * count);
+    const randomPet = await Model.Pet.findOne({ status: 'Adoptable' }).skip(random);
+    return res.send(randomPet);
+  } catch (err) {
+    res.status(500);
+    return res.send({ error: { ...err } });
+  }
+};
+
+const getPetByName = async (req, res) => {
+  const { name } = req.params;
+  try {
+    const petByName = await Model.Pet.findOne({ name: { $regex: new RegExp(name, 'i') } });
+    return res.json(petByName);
+  } catch (err) {
+    res.status(404);
+    return res.send(err);
   }
 };
 
 export default {
-  getPet, getPets, addPet, editPet, adoptPet, returnPet,
+  getPet, getPets, addPet, editPet, adoptPet, returnPet, getRandomPet, getPetByName,
 };

@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
-import api from './api/index.js';
+import apiRouter from './api/index.js';
 
 dotenv.config();
 
@@ -16,6 +16,8 @@ mongoose.connect(
     useCreateIndex: true,
   },
 );
+
+mongoose.set('useFindAndModify', false);
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -37,32 +39,22 @@ app.use(cors({
 
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
-    console.log(req.cookies);
     console.log(req.method, req.path);
+    if (Object.keys(req.body).length > 0) {
+      console.log(req.body);
+    }
     next();
   });
 }
 
+app.use('/', apiRouter);
+
 app.get('/', (req, res) => res.send('welcome to the pet-adoption-back-end'));
 
-app.post('/signup', api.signup);
-app.post('/login', api.login);
-
-app.post('/pet', api.addPet);
-app.get('/pet/:id', api.getPet);
-app.put('/pet/:id', api.editPet);
-app.get('/pet', api.getPets);
-
-app.post('/pet/:id/adopt', api.adoptPet);
-app.post('/pet/:id/return', api.returnPet);
-app.post('/pet/:id/save', api.savePet);
-app.delete('/pet/:id/save', api.deleteSavedPet);
-
-app.get('/pet/user/:id', api.getUserPets);
-app.get('/user/:id', api.getUser);
-app.get('/user/:id/full', api.getUserFull);
-app.put('/user/:id', api.updateUser);
-app.get('/user', api.getUsers);
+app.use('*', (req, res) => {
+  res.status(404);
+  res.json({ error: { msg: 'url not found' } });
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`Server listening on port ${process.env.PORT} 🟢`);
