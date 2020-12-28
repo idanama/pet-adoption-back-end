@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
+import { formatDistanceToNow } from 'date-fns';
 
-const Pet = new mongoose.Schema({
+const opts = { toJSON: { virtuals: true } };
+const PetSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Pet name required'],
@@ -64,6 +66,10 @@ const Pet = new mongoose.Schema({
     validate: [validator.isDate, 'Invalid date'],
   },
   owner: { type: mongoose.Schema.Types.ObjectId, default: null },
+}, opts);
+
+PetSchema.virtual('age').get(function () {
+  return `${formatDistanceToNow(new Date(this.dateOfBirth.toString()))} old`;
 });
 
-export default Pet;
+export default PetSchema;

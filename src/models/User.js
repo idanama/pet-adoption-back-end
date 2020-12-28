@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 
-const User = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   fName: {
     type: String,
     required: [true, 'First Name is required'],
@@ -56,4 +56,4 @@ const User = new mongoose.Schema({
   },
 });
 
-export default User;
+export default UserSchema;

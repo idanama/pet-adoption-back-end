@@ -47,7 +47,7 @@ const getPets = async (req, res) => {
       default:
     }
 
-    const allPets = await Model.Pet.find(query).lean();
+    const allPets = await Model.Pet.find(query);
     return res.json(allPets);
   } catch (err) {
     res.status(500);
