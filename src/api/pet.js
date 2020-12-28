@@ -27,7 +27,27 @@ const addPet = async (req, res) => {
 
 const getPets = async (req, res) => {
   try {
-    const allPets = await Model.Pet.find();
+    const { animal, relationship } = req.query;
+    const query = {};
+    switch (relationship) {
+      case 'foster':
+        query.status = 'Adoptable';
+        break;
+      default:
+        query.status = { $in: ['Adoptable', 'Fostered'] };
+    }
+
+    switch (animal) {
+      case 'dog':
+        query.species = 'Dog';
+        break;
+      case 'cat':
+        query.species = 'Cat';
+        break;
+      default:
+    }
+
+    const allPets = await Model.Pet.find(query).lean();
     return res.json(allPets);
   } catch (err) {
     res.status(500);
