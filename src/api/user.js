@@ -54,7 +54,7 @@ const login = async (req, res) => {
     throw new Error();
   } catch (err) {
     res.status(401);
-    return res.send({ error: { msg: 'wrong credentials' } });
+    return res.send({ error: { ...err } });
   }
 };
 
