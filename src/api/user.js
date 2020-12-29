@@ -56,7 +56,7 @@ const login = async (req, res) => {
         token,
       });
     }
-    throw new Error('no user found');
+    throw new Error('');
   } catch (err) {
     res.status(401);
     return res.send({ error: { ...err, msg: 'could not verify credentials' } });
@@ -127,6 +127,9 @@ const getUser = async (req, res) => {
 const hydrateUser = async (req, res) => {
   try {
     const { jwt } = req.cookies;
+    if (!jwt) {
+      throw new Error('no jwt provided');
+    }
     const { userId } = validateJwt(jwt);
     const user = await Model.User.findOne({ _id: userId }, 'id role fName lName');
     return res.json(user);
