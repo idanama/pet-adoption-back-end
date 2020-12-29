@@ -20,6 +20,7 @@ router.post('/pet/:id/save', user.savePet);
 router.delete('/pet/:id/save', user.deleteSavedPet);
 
 router.get('/pet/user/:id', user.getUserPets);
+router.get('/user/refresh', user.hydrateUser);
 router.get('/user/:id', user.getUser);
 router.get('/user/:id/full', user.getUserFull);
 router.put('/user/:id', user.updateUser);

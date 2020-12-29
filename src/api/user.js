@@ -49,7 +49,12 @@ const login = async (req, res) => {
     if (isUser) {
       const userId = _id;
       const token = signJwt(userId, role);
-      return res.send({ user: { _id, fName, lName }, token });
+      return res.send({
+        user: {
+          _id, fName, lName, role,
+        },
+        token,
+      });
     }
     throw new Error();
   } catch (err) {
@@ -119,6 +124,17 @@ const getUser = async (req, res) => {
   }
 };
 
+const hydrateUser = async (req, res) => {
+  try {
+    const { userId } = validateJwt(req.cookies.jwt);
+    const user = await Model.User.findOne({ _id: userId }, 'id role fName lName');
+    return res.json(user);
+  } catch (err) {
+    res.status(401);
+    return res.send({ error: { ...err } });
+  }
+};
+
 const getUserFull = async (req, res) => {
   const { id } = req.params;
   try {
@@ -160,5 +176,14 @@ const getUsers = async (req, res) => {
 };
 
 export default {
-  signup, login, savePet, deleteSavedPet, getUserPets, getUser, getUserFull, updateUser, getUsers,
+  signup,
+  login,
+  savePet,
+  deleteSavedPet,
+  getUserPets,
+  getUser,
+  getUserFull,
+  updateUser,
+  getUsers,
+  hydrateUser,
 };
