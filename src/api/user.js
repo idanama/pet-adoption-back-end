@@ -59,7 +59,7 @@ const login = async (req, res) => {
     throw new Error('no user found');
   } catch (err) {
     res.status(401);
-    return res.send({ error: { ...err } });
+    return res.send({ error: { ...err, msg: 'could not verify credentials' } });
   }
 };
 
