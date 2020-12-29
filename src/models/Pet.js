@@ -28,22 +28,12 @@ const PetSchema = new mongoose.Schema({
     },
   },
   height: {
-    type: String,
-    validate: {
-      validator(v) {
-        return validator.isLength(v, { min: 3, max: 8 } && validator.isAlphanumeric(v));
-      },
-      message: 'Invalid height',
-    },
+    type: Number,
+    validate: [validator.isNumeric, 'Invalid height'],
   },
   weight: {
-    type: String,
-    validate: {
-      validator(v) {
-        return validator.isLength(v, { min: 3, max: 8 } && validator.isAlphanumeric(v));
-      },
-      message: 'Invalid weight',
-    },
+    type: Number,
+    validate: [validator.isNumeric, 'Invalid weight'],
   },
   color: String,
   bio: String,
