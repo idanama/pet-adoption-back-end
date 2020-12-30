@@ -53,7 +53,7 @@ app.get('/', (req, res) => res.send('welcome to the pet-adoption-back-end'));
 
 app.use('*', (req, res) => {
   res.status(404);
-  res.json({ error: { msg: 'url not found' } });
+  res.json({ error: { msg: 'url not found', url: req.path } });
 });
 
 app.listen(process.env.PORT, () => {
