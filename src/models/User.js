@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 
+const opts = { toJSON: { virtuals: true } };
 const UserSchema = new mongoose.Schema({
   fName: {
     type: String,
@@ -51,9 +52,17 @@ const UserSchema = new mongoose.Schema({
   bio: {
     type: String,
   },
-  savedPets: {
-    type: [mongoose.Schema.Types.ObjectId],
-  },
+  savedPets: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Pet',
+  }],
+}, opts);
+
+UserSchema.virtual('ownedPets', {
+  ref: 'Pet',
+  localField: '_id',
+  foreignField: 'owner',
+  justOne: false,
 });
 
 export default UserSchema;

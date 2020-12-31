@@ -143,7 +143,7 @@ const getUserFull = async (req, res) => {
   const { id } = req.params;
   try {
     verifyUser(req.cookies.jwt, undefined, 'admin');
-    const user = await Model.User.findById(id);
+    const user = await Model.User.findById(id).populate(['ownedPets', 'savedPets']);
     return res.json(user);
   } catch (err) {
     res.status(400);
@@ -179,7 +179,7 @@ const getUsers = async (req, res) => {
   }
   const keys = ['_id', ...userQuery].join(' ');
   try {
-    const users = await Model.User.find({}, `${keys}`).lean();
+    const users = await Model.User.find({}, `${keys}`).populate('ownedPets');
     return res.send(users);
   } catch (err) {
     res.status(400);
