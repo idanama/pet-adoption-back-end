@@ -29,22 +29,12 @@ const getPets = async (req, res) => {
   try {
     const { animal, relationship } = req.query;
     const query = {};
-    switch (relationship) {
-      case 'foster':
-        query.status = 'Adoptable';
-        break;
-      default:
-        query.status = { $in: ['Adoptable', 'Fostered'] };
-    }
 
-    switch (animal) {
-      case 'dog':
-        query.species = 'Dog';
-        break;
-      case 'cat':
-        query.species = 'Cat';
-        break;
-      default:
+    if (Object.keys(req.query).length !== 0) {
+      query.status = relationship === 'foster' ? 'Adoptable' : { $in: ['Adoptable', 'Fostered'] };
+      if (animal && animal !== 'any') {
+        query.species = animal.charAt(0).toUpperCase() + animal.slice(1);
+      }
     }
 
     const allPets = await Model.Pet.find(query);
