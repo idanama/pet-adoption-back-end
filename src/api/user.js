@@ -44,7 +44,7 @@ const login = async (req, res) => {
     const {
       _id, fName, lName, password, role,
     } = await Model.User
-      .findOne({ email: req.body.email }, 'id password role fName lName');
+      .findOne({ email: req.body.email }, 'id password role fName lName savedPets');
     const isUser = await bcrypt.compare(req.body.password, password);
     if (isUser) {
       const userId = _id;
@@ -98,7 +98,6 @@ const getUserPets = async (req, res) => {
       .findById(id)).savedPets;
     const allPets = await Model.Pet
       .find({ $or: [{ _id: { $in: savedPetsIds } }, { owner: id }] });
-    console.log(savedPetsIds);
     const savedPets = allPets.filter((pet) => savedPetsIds.includes(pet.id));
     const ownedPets = allPets.filter((pet) => String(pet.owner) === String(id));
 
@@ -131,7 +130,7 @@ const hydrateUser = async (req, res) => {
       throw new Error('no jwt provided');
     }
     const { userId } = validateJwt(jwt);
-    const user = await Model.User.findOne({ _id: userId }, 'id role fName lName');
+    const user = await Model.User.findOne({ _id: userId }, 'id role fName lName savedPets');
     return res.json(user);
   } catch (err) {
     res.status(401);
