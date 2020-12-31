@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import dotenv from 'dotenv';
 import Model from '../models/index.js';
-import { validateJwt, signJwt } from './jwt.js';
+import { validateJwt, signJwt, verifyUser } from './jwt.js';
 
 dotenv.config();
 
@@ -142,6 +142,7 @@ const hydrateUser = async (req, res) => {
 const getUserFull = async (req, res) => {
   const { id } = req.params;
   try {
+    verifyUser(req.cookies.jwt, undefined, 'admin');
     const user = await Model.User.findById(id);
     return res.json(user);
   } catch (err) {
@@ -164,6 +165,13 @@ const updateUser = async (req, res) => {
 };
 
 const getUsers = async (req, res) => {
+  try {
+    verifyUser(req.cookies.jwt, undefined, 'admin');
+  } catch (err) {
+    res.status(401);
+    return res.send({ error: { ...err } });
+  }
+
   const userQuery = req.query.get ? req.query.get.split(',') : '';
   if (userQuery.includes('password')) {
     res.status(401);
