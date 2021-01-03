@@ -29,11 +29,21 @@ const PetSchema = new mongoose.Schema({
   },
   height: {
     type: Number,
-    validate: [validator.isNumeric, 'Invalid height'],
+    validate: {
+      validator(v) {
+        return !Number.isNaN(v);
+      },
+      message: 'Invalid Height',
+    },
   },
   weight: {
     type: Number,
-    validate: [validator.isNumeric, 'Invalid weight'],
+    validate: {
+      validator(v) {
+        return !Number.isNaN(v);
+      },
+      message: 'Invalid Height',
+    },
   },
   color: String,
   bio: String,
