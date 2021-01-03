@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import Model from '../models/index.js';
-import { validateJwt } from './jwt.js';
+import { validateJwt, verifyUser } from './jwt.js';
 
 dotenv.config();
 
@@ -65,8 +65,9 @@ const getPet = async (req, res) => {
 const editPet = async (req, res) => {
   const { id } = req.params;
   try {
+    verifyUser(req.cookies.jwt, undefined, 'admin');
     const updatedPet = await Model.Pet
-      .findByIdAndUpdate(id, req.body.updatedFields, updateOptions);
+      .findByIdAndUpdate(id, req.body, updateOptions);
     return res.send(updatedPet);
   } catch (err) {
     res.status(400);

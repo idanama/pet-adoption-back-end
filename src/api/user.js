@@ -32,7 +32,12 @@ const signup = async (req, res) => {
     } = await newUser.save();
     const userId = _id;
     const token = signJwt(userId, role);
-    return res.send({ user: { _id, fName, lName }, token });
+    res.cookies('jwt', token);
+    return res.send({
+      user: {
+        _id, fName, lName, role,
+      },
+    });
   } catch (err) {
     res.status(500);
     return res.send({ error: { ...err } });
@@ -49,11 +54,11 @@ const login = async (req, res) => {
     if (isUser) {
       const userId = _id;
       const token = signJwt(userId, role);
+      res.cookies('jwt', token);
       return res.send({
         user: {
           _id, fName, lName, role,
         },
-        token,
       });
     }
     throw new Error('');
@@ -127,7 +132,7 @@ const hydrateUser = async (req, res) => {
   try {
     const { jwt } = req.cookies;
     if (!jwt) {
-      throw new Error('no jwt provided');
+      return res.send({});
     }
     const { userId } = validateJwt(jwt);
     const user = await Model.User.findOne({ _id: userId }, 'id role fName lName savedPets');
