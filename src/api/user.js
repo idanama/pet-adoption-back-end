@@ -7,6 +7,7 @@ import { validateJwt, signJwt, verifyUser } from './jwt.js';
 dotenv.config();
 
 const updateOptions = { new: true, omitUndefined: true, runValidators: true };
+const cookieOptions = { maxAge: 86400 * 21, sameSite: 'Strict', httpOnly: true };
 
 const signup = async (req, res) => {
   const sanitizedUser = {
@@ -32,7 +33,7 @@ const signup = async (req, res) => {
     } = await newUser.save();
     const userId = _id;
     const token = signJwt(userId, role);
-    res.cookies('jwt', token);
+    res.cookie('jwt', token, cookieOptions);
     return res.send({
       user: {
         _id, fName, lName, role,
@@ -54,7 +55,7 @@ const login = async (req, res) => {
     if (isUser) {
       const userId = _id;
       const token = signJwt(userId, role);
-      res.cookies('jwt', token);
+      res.cookie('jwt', token, cookieOptions);
       return res.send({
         user: {
           _id, fName, lName, role,
