@@ -5,6 +5,9 @@ import Model from '../models/index.js';
 dotenv.config();
 
 export const validateJwt = (token, userId) => {
+  if (!token) {
+    throw new Error({ msg: 'no token provided' });
+  }
   const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
   if (userId) {
     if (decodedJwt.userId !== userId && decodedJwt.role === 'user') {
