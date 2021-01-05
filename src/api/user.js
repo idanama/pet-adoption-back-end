@@ -21,8 +21,7 @@ const signup = async (req, res) => {
     const userValidation = new Model.User(sanitizedUser);
     await userValidation.validate();
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 
   try {
@@ -40,8 +39,7 @@ const signup = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500);
-    return res.send({ error: { ...err } });
+    return res.status(500).send(err);
   }
 };
 
@@ -62,10 +60,9 @@ const login = async (req, res) => {
         },
       });
     }
-    throw new Error('');
+    throw new Error('could not verify credentials');
   } catch (err) {
-    res.status(401);
-    return res.send({ error: { ...err, msg: 'could not verify credentials' } });
+    return res.status(401).send(err);
   }
 };
 
@@ -78,8 +75,7 @@ const savePet = async (req, res) => {
       .findByIdAndUpdate(userId, { $addToSet: { savedPets: [id] } }, updateOptions);
     return res.send({ savedPets });
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -92,8 +88,7 @@ const deleteSavedPet = async (req, res) => {
       .findByIdAndUpdate(userId, { $pull: { savedPets: id } }, updateOptions);
     return res.send({ savedPets });
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -109,8 +104,7 @@ const getUserPets = async (req, res) => {
 
     return res.json({ savedPets, ownedPets });
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -124,23 +118,19 @@ const getUser = async (req, res) => {
       _id, fName, lName, bio,
     });
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
 const hydrateUser = async (req, res) => {
   try {
     const { jwt } = req.cookies;
-    if (!jwt) {
-      return res.send({});
-    }
     const { userId } = validateJwt(jwt);
     const user = await Model.User.findOne({ _id: userId }, 'id role fName lName savedPets');
     return res.json(user);
   } catch (err) {
-    res.status(401);
-    return res.send({ error: { ...err } });
+    console.log(err);
+    return res.status(401).send(err);
   }
 };
 
@@ -152,7 +142,7 @@ const getUserFull = async (req, res) => {
     return res.json(user);
   } catch (err) {
     res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -165,7 +155,7 @@ const updateUser = async (req, res) => {
     return res.send(updatedUser);
   } catch (err) {
     res.status(400);
-    return res.send({ error: { ...err } });
+    return res.send(err);
   }
 };
 
@@ -173,22 +163,19 @@ const getUsers = async (req, res) => {
   try {
     verifyUser(req.cookies.jwt, undefined, 'admin');
   } catch (err) {
-    res.status(401);
-    return res.send({ error: { ...err } });
+    return res.status(401).send(err);
   }
 
   const userQuery = req.query.get ? req.query.get.split(',') : '';
   if (userQuery.includes('password')) {
-    res.status(401);
-    return res.send('can not retrieve passwords');
+    return res.status(401).send('can not retrieve passwords');
   }
   const keys = ['_id', ...userQuery].join(' ');
   try {
     const users = await Model.User.find({}, `${keys}`).populate('ownedPets');
     return res.send(users);
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
