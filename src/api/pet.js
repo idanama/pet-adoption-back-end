@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import cloudinary from '../utils/cloudinary.js';
 import Model from '../models/index.js';
 import { validateJwt, verifyUser } from './jwt.js';
 
@@ -7,21 +8,25 @@ dotenv.config();
 const updateOptions = { new: true, omitUndefined: true, runValidators: true };
 
 const addPet = async (req, res) => {
+  const pictures = [];
   try {
-    const petValidation = new Model.Pet({ ...req.body });
+    verifyUser(req.cookies.jwt, undefined, 'admin');
+    if (req.file) {
+      const uploadedImage = await cloudinary.v2.uploader.upload(req.file.path);
+      pictures.push(uploadedImage.secure_url);
+    }
+    const petValidation = new Model.Pet({ ...req.body, pictures });
     await petValidation.validate();
-  } catch (e) {
-    res.status(400);
-    return res.send({ error: { ...e } });
+  } catch (err) {
+    return res.status(400).send(err);
   }
 
-  const newPet = new Model.Pet({ ...req.body });
+  const newPet = new Model.Pet({ ...req.body, pictures });
   try {
-    const savedPet = await newPet.save;
+    const savedPet = await newPet.save();
     return res.json(savedPet);
   } catch (err) {
-    res.status(500);
-    return res.send({ error: { ...err } });
+    return res.status(500).send(err);
   }
 };
 
@@ -40,8 +45,7 @@ const getPets = async (req, res) => {
     const allPets = await Model.Pet.find(query);
     return res.json(allPets);
   } catch (err) {
-    res.status(500);
-    return res.send({ error: { ...err } });
+    return res.status(500).send(err);
   }
 };
 
@@ -57,21 +61,33 @@ const getPet = async (req, res) => {
     }
     return res.json(result);
   } catch (err) {
-    res.status(404);
-    return res.send({ error: { ...err } });
+    return res.status(404).send(err);
   }
 };
 
 const editPet = async (req, res) => {
+  let picture;
+  try {
+    verifyUser(req.cookies.jwt, undefined, 'admin');
+    if (req.file) {
+      const uploadedImage = await cloudinary.v2.uploader.upload(req.file.path);
+      picture = uploadedImage.secure_url;
+    }
+    const petValidation = new Model.Pet({ ...req.body, pictures: [picture] });
+    await petValidation.validate();
+  } catch (err) {
+    return res.status(400).send(err);
+  }
+
   const { id } = req.params;
   try {
     verifyUser(req.cookies.jwt, undefined, 'admin');
+    const updatedFields = picture ? { ...req.body, pictures: [picture] } : req.body;
     const updatedPet = await Model.Pet
-      .findByIdAndUpdate(id, req.body, updateOptions);
+      .findByIdAndUpdate(id, updatedFields, updateOptions);
     return res.send(updatedPet);
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -85,8 +101,7 @@ const adoptPet = async (req, res) => {
       .findByIdAndUpdate(id, { owner: userId, status }, updateOptions);
     return res.send(updatedPet);
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -99,8 +114,7 @@ const returnPet = async (req, res) => {
       .findByIdAndUpdate(id, { owner: null, status: 'Adoptable' }, updateOptions);
     return res.send(updatedPet);
   } catch (err) {
-    res.status(400);
-    return res.send({ error: { ...err } });
+    return res.status(400).send(err);
   }
 };
 
@@ -111,8 +125,7 @@ const getRandomPet = async (req, res) => {
     const randomPet = await Model.Pet.findOne({ status: 'Adoptable' }).skip(random);
     return res.send(randomPet);
   } catch (err) {
-    res.status(500);
-    return res.send({ error: { ...err } });
+    return res.status(500).send(err);
   }
 };
 
@@ -122,8 +135,7 @@ const getPetByName = async (req, res) => {
     const petByName = await Model.Pet.findOne({ name: { $regex: new RegExp(name, 'i') } });
     return res.json(petByName);
   } catch (err) {
-    res.status(404);
-    return res.send(err);
+    return res.status(404).send(err);
   }
 };
 
