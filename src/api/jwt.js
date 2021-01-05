@@ -6,12 +6,12 @@ dotenv.config();
 
 export const validateJwt = (token, userId) => {
   if (!token) {
-    throw new Error({ msg: 'no token provided' });
+    throw new Error('no token provided');
   }
   const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
   if (userId) {
     if (decodedJwt.userId !== userId && decodedJwt.role === 'user') {
-      throw new Error({ msg: 'unauthorized' });
+      throw new Error('unauthorized');
     }
   }
   return decodedJwt;
@@ -20,14 +20,17 @@ export const validateJwt = (token, userId) => {
 export const signJwt = (userId, role) => jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
 export const verifyUser = async (token, userId, role) => {
+  if (!token) {
+    throw new Error('no token provided');
+  }
   const decodedJwt = validateJwt(token, userId);
   if (role && decodedJwt.role !== role) {
-    throw new Error({ msg: 'unauthorized' });
+    throw new Error('unauthorized');
   }
   if (role) {
     const upToDateUser = await Model.User.findById(decodedJwt.userId, 'role');
     if (role !== upToDateUser.role) {
-      throw new Error({ msg: 'unauthorized' });
+      throw new Error('unauthorized');
     }
   }
   return decodedJwt;
