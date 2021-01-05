@@ -6,12 +6,13 @@ const opts = { toJSON: { virtuals: true } };
 const PetSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Pet name required'],
-    validate: [validator.isAlpha, 'Pet name is invalid'],
+    required: [true, 'No pet name provided.'],
+    validate: [validator.isAlpha, 'Pet name should be one word, only letters.'],
   },
   species: {
     type: String,
-    enum: ['Cat', 'Dog'],
+    enum: ['Cat', 'Dog', 'Other'],
+    required: [true, 'Species required'],
   },
   status: {
     type: String,
@@ -22,9 +23,9 @@ const PetSchema = new mongoose.Schema({
     type: [String],
     validate: {
       validator(v) {
-        return v.reduce((acc, path) => acc && path.startsWith('/images/'), true);
+        v.reduce((prev, cur) => cur.startsWith('https://res.cloudinary.com/petadoption/') && prev, true);
       },
-      message: 'Invalid image path',
+      message: 'Picture path is invalid',
     },
   },
   height: {
@@ -33,7 +34,7 @@ const PetSchema = new mongoose.Schema({
       validator(v) {
         return !Number.isNaN(v);
       },
-      message: 'Invalid Height',
+      message: 'Height should be a number (in cm)',
     },
   },
   weight: {
@@ -42,7 +43,7 @@ const PetSchema = new mongoose.Schema({
       validator(v) {
         return !Number.isNaN(v);
       },
-      message: 'Invalid Height',
+      message: 'Weight should be a number (in kg)',
     },
   },
   color: String,
@@ -51,7 +52,7 @@ const PetSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator(v) { return validator.isLength(v, { max: 64 }); },
-      message: 'Invalid tagline',
+      message: 'Tagline should be up to 64 characters',
     },
   },
   hypoallergenic: Boolean,
@@ -63,9 +64,10 @@ const PetSchema = new mongoose.Schema({
   },
   dateOfBirth: {
     type: Date,
+    required: [true, 'No date of birth provided'],
     validate: [validator.isDate, 'Invalid date'],
   },
-  owner: { type: mongoose.Schema.Types.ObjectId, default: null },
+  owner: { type: mongoose.Schema.Types.ObjectId },
 }, opts);
 
 PetSchema.virtual('age').get(function () {
