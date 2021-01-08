@@ -32,17 +32,41 @@ const addPet = async (req, res) => {
 
 const getPets = async (req, res) => {
   try {
-    const { animal, relationship } = req.query;
-    const query = {};
+    const {
+      animal, relationship, minh, maxh, minw, maxw, name,
+    } = req.query;
 
-    if (Object.keys(req.query).length !== 0) {
-      query.status = relationship === 'foster' ? 'Adoptable' : { $in: ['Adoptable', 'Fostered'] };
-      if (animal && animal !== 'any') {
-        query.species = animal.charAt(0).toUpperCase() + animal.slice(1);
+    const searchQuery = {};
+
+    if (relationship || animal === 'any') {
+      searchQuery.status = relationship === 'foster' ? 'Adoptable' : { $in: ['Adoptable', 'Fostered'] };
+    }
+    if (minh || maxh) {
+      searchQuery.height = {};
+      if (minh) {
+        searchQuery.height.$gt = minh;
+      }
+      if (maxh) {
+        searchQuery.height.$lt = maxh;
       }
     }
+    if (minw || maxw) {
+      searchQuery.weight = {};
+      if (minw) {
+        searchQuery.weight.$gt = minw;
+      }
+      if (maxw) {
+        searchQuery.weight.$lt = maxw;
+      }
+    }
+    if (name) {
+      searchQuery.name = { $regex: new RegExp(name, 'i') };
+    }
+    if (animal !== 'any') {
+      searchQuery.species = { $regex: new RegExp(animal, 'i') };
+    }
 
-    const allPets = await Model.Pet.find(query);
+    const allPets = await Model.Pet.find(searchQuery);
     return res.json(allPets);
   } catch (err) {
     return res.status(500).send(err);
