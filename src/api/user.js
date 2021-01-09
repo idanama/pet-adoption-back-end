@@ -3,6 +3,7 @@ import validator from 'validator';
 import dotenv from 'dotenv';
 import Model from '../models/index.js';
 import { validateJwt, signJwt, verifyUser } from './jwt.js';
+import { addActivity } from './activity.js';
 
 dotenv.config();
 
@@ -73,6 +74,7 @@ const savePet = async (req, res) => {
     validateJwt(req.cookies.jwt, userId);
     const { savedPets } = await Model.User
       .findByIdAndUpdate(userId, { $addToSet: { savedPets: [id] } }, updateOptions);
+    addActivity(userId, id, 'saved');
     return res.send({ savedPets });
   } catch (err) {
     return res.status(400).send(err);
@@ -86,6 +88,7 @@ const deleteSavedPet = async (req, res) => {
     validateJwt(req.cookies.jwt, userId);
     const { savedPets } = await Model.User
       .findByIdAndUpdate(userId, { $pull: { savedPets: id } }, updateOptions);
+    addActivity(userId, id, 'unsaved');
     return res.send({ savedPets });
   } catch (err) {
     return res.status(400).send(err);

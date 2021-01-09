@@ -1,9 +1,7 @@
-import dotenv from 'dotenv';
 import cloudinary from '../utils/cloudinary.js';
 import Model from '../models/index.js';
 import { validateJwt, verifyUser } from './jwt.js';
-
-dotenv.config();
+import { addActivity } from './activity.js';
 
 const updateOptions = { new: true, omitUndefined: true, runValidators: true };
 
@@ -105,7 +103,8 @@ const editPet = async (req, res) => {
       const uploadedImage = await cloudinary.v2.uploader.upload(req.file.path);
       picture = uploadedImage.secure_url;
     }
-    const petValidation = new Model.Pet({ ...req.body, pictures: [picture] });
+    const updatedFields = picture?.length > 0 ? { ...req.body, pictures: [picture] } : req.body;
+    const petValidation = new Model.Pet(updatedFields);
     await petValidation.validate();
   } catch (err) {
     return res.status(400).send(err);
@@ -114,7 +113,7 @@ const editPet = async (req, res) => {
   const { id } = req.params;
   try {
     verifyUser(req.cookies.jwt, undefined, 'admin');
-    const updatedFields = picture ? { ...req.body, pictures: [picture] } : req.body;
+    const updatedFields = picture?.length > 0 ? { ...req.body, pictures: [picture] } : req.body;
     const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, updatedFields, updateOptions);
     return res.send(updatedPet);
@@ -131,6 +130,7 @@ const adoptPet = async (req, res) => {
     const status = action === 'adopt' ? 'Adopted' : 'Fostered';
     const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, { owner: userId, status }, updateOptions);
+    addActivity(userId, id, action === 'adopt' ? 'adopted' : 'fostered');
     return res.send(updatedPet);
   } catch (err) {
     return res.status(400).send(err);
@@ -144,6 +144,7 @@ const returnPet = async (req, res) => {
     validateJwt(req.cookies.jwt, userId);
     const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, { owner: null, status: 'Adoptable' }, updateOptions);
+    addActivity(userId, id, 'returned');
     return res.send(updatedPet);
   } catch (err) {
     return res.status(400).send(err);
@@ -155,7 +156,17 @@ const getRandomPet = async (req, res) => {
     const count = await Model.Pet.count({ status: 'Adoptable' });
     const random = Math.floor(Math.random() * count);
     const randomPet = await Model.Pet.findOne({ status: 'Adoptable' }).skip(random);
+
     return res.send(randomPet);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+};
+
+const getRecentPet = async (req, res) => {
+  try {
+    const recentPets = await Model.Pet.find().sort('-_id').limit(9);
+    return res.send(recentPets);
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -172,5 +183,14 @@ const getPetByName = async (req, res) => {
 };
 
 export default {
-  getPet, getPets, addPet, editPet, adoptPet, returnPet, getRandomPet, getPetByName, search,
+  getPet,
+  getPets,
+  addPet,
+  editPet,
+  adoptPet,
+  returnPet,
+  getRandomPet,
+  getRecentPet,
+  getPetByName,
+  search,
 };

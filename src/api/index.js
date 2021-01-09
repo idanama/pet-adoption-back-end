@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pet from './pet.js';
 import user from './user.js';
+import activity from './activity.js';
 import upload from '../utils/multer.js';
 
 const router = Router();
@@ -10,6 +11,7 @@ router.post('/login', user.login);
 
 router.post('/pet', upload.single('picture'), pet.addPet);
 router.get('/pet/random', pet.getRandomPet);
+router.get('/pet/recent', pet.getRecentPet);
 router.get('/pet/name/:name', pet.getPetByName);
 router.get('/pet/:id', pet.getPet);
 router.put('/pet/:id', upload.single('picture'), pet.editPet);
@@ -27,5 +29,8 @@ router.get('/user/:id', user.getUser);
 router.get('/user/:id/full', user.getUserFull);
 router.put('/user/:id', user.updateUser);
 router.get('/user', user.getUsers);
+
+router.get('/activity', activity.getRecentActivity);
+router.get('/activity/lastadoption', activity.getLastAdoption);
 
 export default router;
