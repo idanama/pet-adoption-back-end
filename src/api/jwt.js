@@ -5,16 +5,20 @@ import Model from '../models/index.js';
 dotenv.config();
 
 export const validateJwt = (token, userId) => {
-  if (!token) {
-    return;
-  }
-  const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
-  if (userId) {
-    if (decodedJwt.userId !== userId && decodedJwt.role === 'user') {
+  try {
+    if (!token) {
       return;
     }
+    const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
+    if (userId) {
+      if (decodedJwt?.userId !== userId && decodedJwt?.role === 'user') {
+        return;
+      }
+    }
+    return decodedJwt;
+  } catch (e) {
+    console.log(e);
   }
-  return decodedJwt;
 };
 
 export const signJwt = (userId, role) => jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '30d' });
