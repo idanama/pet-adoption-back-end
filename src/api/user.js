@@ -128,9 +128,12 @@ const getUser = async (req, res) => {
 const hydrateUser = async (req, res) => {
   try {
     const { jwt } = req.cookies;
-    const { userId } = validateJwt(jwt);
-    const user = await Model.User.findOne({ _id: userId }, 'id role fName lName savedPets');
-    return res.json(user);
+    const validatedJwt = validateJwt(jwt);
+    if (validatedJwt.userId) {
+      const user = await Model.User.findOne({ _id: validatedJwt.userId }, 'id role fName lName savedPets');
+      return res.json(user);
+    }
+    return res.send();
   } catch (err) {
     console.log(err);
     return res.status(401).send(err);
