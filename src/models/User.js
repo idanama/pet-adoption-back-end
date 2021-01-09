@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator(v) {
-        return validator.isLength(v, { min: 9, max: 16 }) && validator.isNumeric(v);
+        return validator.isLength(v, { min: 8, max: 16 }) && validator.isNumeric(v);
       },
       message: 'Invalid phone number',
     },
