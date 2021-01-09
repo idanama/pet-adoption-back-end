@@ -32,15 +32,23 @@ const addPet = async (req, res) => {
 
 const getPets = async (req, res) => {
   try {
+    const allPets = await Model.Pet.find();
+    return res.json(allPets);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+};
+
+const search = async (req, res) => {
+  try {
     const {
-      animal, relationship, minh, maxh, minw, maxw, name,
+      animal, relationship, minh, maxh, minw, maxw, name, page,
     } = req.query;
 
-    const searchQuery = {};
+    const searchQuery = {
+      status: relationship === 'foster' ? 'Adoptable' : { $in: ['Adoptable', 'Fostered'] },
+    };
 
-    if (relationship || animal === 'any') {
-      searchQuery.status = relationship === 'foster' ? 'Adoptable' : { $in: ['Adoptable', 'Fostered'] };
-    }
     if (minh || maxh) {
       searchQuery.height = {};
       if (minh) {
@@ -66,7 +74,7 @@ const getPets = async (req, res) => {
       searchQuery.species = { $regex: new RegExp(animal, 'i') };
     }
 
-    const allPets = await Model.Pet.find(searchQuery);
+    const allPets = await Model.Pet.paginate(searchQuery, { sort: '-dateOfBirth', limit: 10, page: page || 1 });
     return res.json(allPets);
   } catch (err) {
     return res.status(500).send(err);
@@ -164,5 +172,5 @@ const getPetByName = async (req, res) => {
 };
 
 export default {
-  getPet, getPets, addPet, editPet, adoptPet, returnPet, getRandomPet, getPetByName,
+  getPet, getPets, addPet, editPet, adoptPet, returnPet, getRandomPet, getPetByName, search,
 };

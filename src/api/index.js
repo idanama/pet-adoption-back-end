@@ -14,6 +14,7 @@ router.get('/pet/name/:name', pet.getPetByName);
 router.get('/pet/:id', pet.getPet);
 router.put('/pet/:id', upload.single('picture'), pet.editPet);
 router.get('/pet', pet.getPets);
+router.get('/search', pet.search);
 
 router.post('/pet/:id/adopt', pet.adoptPet);
 router.post('/pet/:id/return', pet.returnPet);

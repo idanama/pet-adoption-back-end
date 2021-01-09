@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
+import mongoosePaginate from 'mongoose-paginate-v2';
 import { formatDistanceToNow } from 'date-fns';
 
 const opts = { toJSON: { virtuals: true } };
@@ -73,5 +74,7 @@ const PetSchema = new mongoose.Schema({
 PetSchema.virtual('age').get(function () {
   return `${formatDistanceToNow(new Date(this.dateOfBirth.toString()))} old`;
 });
+
+PetSchema.plugin(mongoosePaginate);
 
 export default PetSchema;
