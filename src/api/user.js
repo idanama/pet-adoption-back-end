@@ -14,9 +14,18 @@ const signup = async (req, res) => {
   const sanitizedUser = {
     ...req.body,
     email: validator.normalizeEmail(req.body.email),
-    bio: validator.escape(req.body.bio),
+    bio: validator.escape(req.body.bio || ''),
     role: 'user',
   };
+
+  if (sanitizedUser.password !== sanitizedUser.passwordConfirm) {
+    return res.status(400).send({ passwordConfirm: 'Passwords do not match' });
+  }
+
+  const emailExists = await Model.User.count({ email: sanitizedUser.email });
+  if (emailExists) {
+    return res.status(400).send({ email: 'Email address already being used' });
+  }
 
   try {
     const userValidation = new Model.User(sanitizedUser);
@@ -129,7 +138,7 @@ const hydrateUser = async (req, res) => {
   try {
     const { jwt } = req.cookies;
     const validatedJwt = validateJwt(jwt);
-    if (validatedJwt.userId) {
+    if (validatedJwt) {
       const user = await Model.User.findOne({ _id: validatedJwt.userId }, 'id role fName lName savedPets');
       return res.json(user);
     }
