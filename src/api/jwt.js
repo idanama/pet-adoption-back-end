@@ -28,7 +28,7 @@ export const verifyUser = async (token, userId, role) => {
     throw new Error('no token provided');
   }
   const decodedJwt = validateJwt(token, userId);
-  if (role && decodedJwt.role !== role) {
+  if (role && decodedJwt && decodedJwt.role !== role) {
     throw new Error('unauthorized');
   }
   if (role) {
