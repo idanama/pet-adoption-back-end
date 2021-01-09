@@ -103,7 +103,9 @@ const editPet = async (req, res) => {
       const uploadedImage = await cloudinary.v2.uploader.upload(req.file.path);
       picture = uploadedImage.secure_url;
     }
-    const updatedFields = picture?.length > 0 ? { ...req.body, pictures: [picture] } : req.body;
+    const updatedFields = picture && picture.length > 0
+      ? { ...req.body, pictures: [picture] }
+      : req.body;
     const petValidation = new Model.Pet(updatedFields);
     await petValidation.validate();
   } catch (err) {
@@ -113,7 +115,9 @@ const editPet = async (req, res) => {
   const { id } = req.params;
   try {
     verifyUser(req.cookies.jwt, undefined, 'admin');
-    const updatedFields = picture?.length > 0 ? { ...req.body, pictures: [picture] } : req.body;
+    const updatedFields = picture && picture.length > 0
+      ? { ...req.body, pictures: [picture] }
+      : req.body;
     const updatedPet = await Model.Pet
       .findByIdAndUpdate(id, updatedFields, updateOptions);
     return res.send(updatedPet);

@@ -10,8 +10,8 @@ export const validateJwt = (token, userId) => {
       return;
     }
     const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
-    if (userId) {
-      if (decodedJwt?.userId !== userId && decodedJwt?.role === 'user') {
+    if (decodedJwt) {
+      if (decodedJwt.userId !== userId && decodedJwt.role === 'user') {
         return;
       }
     }
