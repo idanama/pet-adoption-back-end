@@ -3,7 +3,7 @@ import validator from 'validator';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import { formatDistanceToNow } from 'date-fns';
 
-const opts = { toJSON: { virtuals: true } };
+const opts = { toJSON: { virtuals: true }, timestamps: true };
 const PetSchema = new mongoose.Schema({
   name: {
     type: String,

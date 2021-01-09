@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 
-const opts = { toJSON: { virtuals: true } };
+const opts = { toJSON: { virtuals: true }, timestamps: true };
 const UserSchema = new mongoose.Schema({
   fName: {
     type: String,
