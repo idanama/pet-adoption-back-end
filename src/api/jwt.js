@@ -6,12 +6,12 @@ dotenv.config();
 
 export const validateJwt = (token, userId) => {
   if (!token) {
-    throw new Error('no token provided');
+    return;
   }
   const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
   if (userId) {
     if (decodedJwt.userId !== userId && decodedJwt.role === 'user') {
-      throw new Error('unauthorized');
+      return;
     }
   }
   return decodedJwt;
